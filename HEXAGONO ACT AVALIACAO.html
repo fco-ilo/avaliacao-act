@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hexágono da ACT</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f4f4f9, #e2e2f2);
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        h2 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .container {
+            background: white;
+            max-width: 600px;
+            margin: auto;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            max-width: 100%;
+            margin: 20px 0;
+        }
+        .slider-container {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        input[type="range"] {
+            flex-grow: 1;
+            margin: 0 10px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .reset-button {
+            background: #e74c3c;
+        }
+        .reset-button:hover {
+            background: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Hexágono da ACT</h2>
+        <canvas id="hexagonoChart"></canvas>
+        <div id="sliders"></div>
+        <button onclick="downloadPDF()">Baixar PDF</button>
+        <button class="reset-button" onclick="resetSliders()">Resetar Valores</button>
+    </div>
+    <script>
+        // Dados iniciais
+        const labels = ['Momento Presente', 'Valores', 'Ações com Compromisso', 'Self-como-contexto', 'Desfusão', 'Aceitação'];
+        let dataValues = [5, 5, 5, 5, 5, 5];
+
+        // Configuração do gráfico
+        const ctx = document.getElementById('hexagonoChart').getContext('2d');
+        const hexagonoChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Nível',
+                    data: dataValues,
+                    fill: true,
+                    backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                    borderColor: 'rgba(52, 152, 219, 1)',
+                    pointBackgroundColor: 'rgba(52, 152, 219, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(52, 152, 219, 1)'
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        suggestedMin: 0,
+                        suggestedMax: 10
+                    }
+                }
+            }
+        });
+
+        // Cria os sliders
+        function createSliders() {
+            const sliderContainer = document.getElementById('sliders');
+            labels.forEach((label, index) => {
+                const div = document.createElement('div');
+                div.className = 'slider-container';
+                div.innerHTML = `
+                    <label>${label}: </label>
+                    <input type="range" min="0" max="10" step="1" value="5" oninput="updateValue(${index}, this.value)">
+                    <span id="value${index}">5</span>
+                `;
+                sliderContainer.appendChild(div);
+            });
+        }
+
+        // Atualiza o valor do gráfico
+        function updateValue(index, value) {
+            dataValues[index] = parseInt(value, 10); // Converte o valor para número
+            document.getElementById(`value${index}`).textContent = value;
+            hexagonoChart.data.datasets[0].data = dataValues;
+            hexagonoChart.update(); // Atualiza o gráfico
+        }
+
+        // Reseta os sliders e o gráfico
+        function resetSliders() {
+            dataValues = [5, 5, 5, 5, 5, 5]; // Volta aos valores iniciais
+            const sliders = document.querySelectorAll('input[type="range"]');
+            sliders.forEach((slider, index) => {
+                slider.value = 5;
+                document.getElementById(`value${index}`).textContent = 5;
+            });
+            hexagonoChart.data.datasets[0].data = dataValues;
+            hexagonoChart.update(); // Atualiza o gráfico
+        }
+
+        // Baixa o gráfico como PDF
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            const canvas = document.getElementById('hexagonoChart');
+            const imgData = canvas.toDataURL('image/png');
+            pdf.addImage(imgData, 'PNG', 15, 40, 180, 160);
+            pdf.save('hexagono_act.pdf');
+        }
+
+        // Inicializa os sliders ao carregar a página
+        createSliders();
+    </script>
+</body>
+</html>
